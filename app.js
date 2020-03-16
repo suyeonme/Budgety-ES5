@@ -164,6 +164,45 @@ var UIControllor = (function() {
         expensePercLabel: '.item__percentage'
     };
 
+    var foramtNumber = function(num, type) {
+        var numSplit, int, dec, type;
+
+        /* RULES
+        + or - before number
+        exactly 2 decimal points
+        comma separating the thousands
+
+        2310.4567 -> 2,310.46
+        2000 -> 2,000.00
+        */
+
+        num = Math.abs(num);         // abs: return the absolute vale of number (-5 -> 5)
+        num = num.toFixed(2);           // toFixed: Convert a number into a string, keeping only two decimals, and rounding up.
+
+        numSplit = num.split('.');
+
+        int = numSplit[0];
+        if (int.length > 3) {
+            int = int.substr(0, int.length - 3) + ',' + int.substr(int.length - 3, 3);
+
+            /* 
+            Intl.NumberFormat(); OR toLocaleString();
+
+            var num = 500234567
+
+            console.log(num.toLocaleString('en', {
+                useGrouping: true
+            }));
+            
+            //output 500,234,567
+            */
+        }
+
+        dec = numSplit[1];
+
+        return (type === 'exp' ? '-' :  '+') + ' ' + int + '.' + dec;
+    };
+
 
 
     return {
@@ -193,7 +232,7 @@ var UIControllor = (function() {
             // Replace the placeholder text with actual data
             newHtml = html.replace('%id%', obj.id);
             newHtml = newHtml.replace('%description%', obj.description);
-            newHtml = newHtml.replace('%value%', obj.value);
+            newHtml = newHtml.replace('%value%', foramtNumber(obj.value, type));
 
 
             // Insert the HTML into DOM
@@ -225,9 +264,14 @@ var UIControllor = (function() {
         },
 
         displayBudget: function(obj) {
-            document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-            document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc;
-            document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExp;
+
+            var type;
+
+            obj.budget > 0 ? type = 'inc' : type = 'exp';
+
+            document.querySelector(DOMstrings.budgetLabel).textContent = foramtNumber(obj.budget, type);
+            document.querySelector(DOMstrings.incomeLabel).textContent = foramtNumber(obj.totalInc, 'inc');
+            document.querySelector(DOMstrings.expensesLabel).textContent = foramtNumber(obj.totalExp, 'exp');
 
             if (obj.percentage > 0) {
                 document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + '%';
@@ -239,8 +283,9 @@ var UIControllor = (function() {
         displayPercentages: function(percentages) {
             var fields = document.querySelectorAll(DOMstrings.expensePercLabel);    // querySelectorAll returns a nodeList not an array.
 
+             // We can't use forEach (array mehtod). IT is HACK the same 'forEach' method.
             var nodeListForEach = function(nodeList, callback) {
-                for(var i = 0; i < nodeList.length; i++) {      // We can't use forEach (array mehtod). IT is HACK for 'forEach' method.
+                for(var i = 0; i < nodeList.length; i++) {     
                     callback(nodeList[i], i)                    // nodeList[i] = current /  i = index
                 }
             };
