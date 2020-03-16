@@ -179,7 +179,6 @@ var UIControllor = (function() {
 
         num = Math.abs(num);         // abs: return the absolute vale of number (-5 -> 5)
         num = num.toFixed(2);           // toFixed: Convert a number into a string, keeping only two decimals, and rounding up.
-
         numSplit = num.split('.');
 
         int = numSplit[0];
@@ -204,6 +203,14 @@ var UIControllor = (function() {
         return (type === 'exp' ? '-' :  '+') + ' ' + int + '.' + dec;
     };
 
+
+    // We can't use forEach (array mehtod). IT is HACK the same 'forEach' method.
+    var nodeListForEach = function(nodeList, callback) {
+    for(var i = 0; i < nodeList.length; i++) {     
+    callback(nodeList[i], i)                    // nodeList[i] = current /  i = index
+        }
+    };
+    
 
 
     return {
@@ -284,13 +291,6 @@ var UIControllor = (function() {
         displayPercentages: function(percentages) {
             var fields = document.querySelectorAll(DOMstrings.expensePercLabel);    // querySelectorAll returns a nodeList not an array.
 
-             // We can't use forEach (array mehtod). IT is HACK the same 'forEach' method.
-            var nodeListForEach = function(nodeList, callback) {
-                for(var i = 0; i < nodeList.length; i++) {     
-                    callback(nodeList[i], i)                    // nodeList[i] = current /  i = index
-                }
-            };
-
             nodeListForEach(fields, function(current, index) {
                 if (percentages[index] > 0) {
                     current.textContent = percentages[index] + '%';
@@ -317,6 +317,20 @@ var UIControllor = (function() {
             document.querySelector(DOMstrings.dateLabel).textContent = months[month]  + ' ' + year;
         },
 
+        changeType: function() {
+            var fields = document.querySelectorAll(
+                DOMstrings.inputType + ',' +
+                DOMstrings.inputDescription + ',' +
+                DOMstrings.inputValue
+            );
+
+            nodeListForEach(fields, function(cur) {
+                cur.classList.toggle('red-focus');
+            });
+
+            document.querySelector(DOMstrings.inputButton).classList.toggle('red');
+        },
+
         getDOMstrings: function() {                              // Exposing the DOMstrings into the public where can access from other module.
             return DOMstrings;
         }
@@ -336,6 +350,8 @@ var controller = (function(budgetCtrl, UICtrl) {
         var DOM = UICtrl.getDOMstrings();
 
         document.querySelector(DOM.inputButton).addEventListener('click', ctrlAddItem);
+
+        document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changeType); 
 
         document.addEventListener('keypress', function(e) {
             if (e.keycode === 13 || e.which === 13) {                   // "which" is for older blowser that doesn't identify "keycode".
